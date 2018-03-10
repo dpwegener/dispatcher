@@ -24,6 +24,10 @@ struct Service {
         std::cout << "You gave me a Bar from " << aBar.address() << '\n';
     }
 };
+template<typename T, typename S>
+void acceptEvent(S & service, Event const & event) {
+    service.accept(dynamic_cast<T const &>(event));
+}
 
 struct Dispatcher {
     Dispatcher(Service & aService) : myService(aService) {};
@@ -31,11 +35,11 @@ struct Dispatcher {
     void accept(Event const & anEvent) {
         switch (anEvent.getId()) {
             case 1 : {
-                myService.accept(dynamic_cast<Foo const &>(anEvent));
+                acceptEvent<Foo>(myService, anEvent);
                 break;
             }
             case 2 : {
-                myService.accept(dynamic_cast<Bar const &>(anEvent));
+                acceptEvent<Bar>(myService, anEvent);
                 break;
             }
             default : {
