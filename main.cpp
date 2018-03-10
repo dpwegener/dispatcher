@@ -16,11 +16,11 @@ struct Bar : Event {
 };
 
 struct Service {
-    void acceptFoo(Foo const & aFoo) {
+    void accept(Foo const & aFoo) {
         std::cout << "You gave me a Foo called " << aFoo.name() << '\n';
     }
 
-    void acceptBar(Bar const & aBar) {
+    void accept(Bar const & aBar) {
         std::cout << "You gave me a Bar from " << aBar.address() << '\n';
     }
 };
@@ -31,11 +31,11 @@ struct Dispatcher {
     void accept(Event const & anEvent) {
         switch (anEvent.getId()) {
             case 1 : {
-                myService.acceptFoo(dynamic_cast<Foo const &>(anEvent));
+                myService.accept(dynamic_cast<Foo const &>(anEvent));
                 break;
             }
             case 2 : {
-                myService.acceptBar(dynamic_cast<Bar const &>(anEvent));
+                myService.accept(dynamic_cast<Bar const &>(anEvent));
                 break;
             }
             default : {
@@ -51,8 +51,8 @@ int main(int, char**) {
     Bar bar;
     std::cout << "Foo id: " << foo.getId() << " Bar id: " << bar.getId() << '\n';
     Service theService;
-    theService.acceptFoo(foo);
-    theService.acceptBar(bar);
+    theService.accept(foo);
+    theService.accept(bar);
     Dispatcher dispatcher(theService);
     dispatcher.accept(bar);
     dispatcher.accept(foo);
