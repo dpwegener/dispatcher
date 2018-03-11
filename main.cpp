@@ -7,13 +7,6 @@ struct Event {
     virtual int getId() const = 0;
 };
 
-using EventCall = std::function<void(Event const &)> ;
-
-template<typename T, typename S>
-void acceptEvent(S & service, Event const & event) {
-    service.accept(static_cast<T const &>(event));
-}
-
 struct Foo : Event {
     int getId() const override { return 1; }
     std::string name() const { return "Bob"; };
@@ -24,9 +17,11 @@ struct Bar : Event {
     std::string address() const { return "43"; };
 };
 
+using EventCall = std::function<void(Event const &)> ;
+
 template<typename E, typename S>
 EventCall eventCallback(S & service) {
-    return [service] (Event const & event) mutable {acceptEvent<E>(service, event);};
+    return [service] (Event const & event) mutable {service.accept(static_cast<E const &>(event));};
 }
 
 struct Service {
