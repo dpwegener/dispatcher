@@ -40,22 +40,11 @@ struct Service {
 };
 
 struct Dispatcher {
-    Dispatcher(Service & aService) : myService(aService) {};
-    Service & myService;
+    Dispatcher(std::unordered_map<int, EventCall> & callbacks) : callbacks_(callbacks) {};
+    std::unordered_map<int, EventCall> & callbacks_;
+
     void accept(Event const & anEvent) {
-        switch (anEvent.getId()) {
-            case 1 : {
-                acceptEvent<Foo>(myService, anEvent);
-                break;
-            }
-            case 2 : {
-                acceptEvent<Bar>(myService, anEvent);
-                break;
-            }
-            default : {
-                std::cout << "Unknown event: " << anEvent.getId() << '\n';
-            }
-        }
+        callbacks_.at(anEvent.getId())(anEvent);
     }
 };
 
@@ -67,13 +56,13 @@ int main(int, char**) {
     Service theService;
     theService.accept(foo);
     theService.accept(bar);
-    std::unordered_map<int, std::function<void(Event const &)>> callbacks;
+    std::unordered_map<int, EventCall> callbacks;
     callbacks[1] = eventCallback<Foo>(theService);
     callbacks[2] = eventCallback<Bar>(theService);
     callbacks[1](foo);
     callbacks[2](bar);
     eventCallback<Foo>(theService)(foo);
-    Dispatcher dispatcher(theService);
+    Dispatcher dispatcher(callbacks);
     dispatcher.accept(bar);
     dispatcher.accept(foo);
 }
