@@ -44,7 +44,13 @@ struct Dispatcher {
     std::unordered_map<int, EventCall> & callbacks_;
 
     void accept(Event const & anEvent) {
-        callbacks_.at(anEvent.getId())(anEvent);
+        auto callback = callbacks_.find(anEvent.getId());
+        if (callback != callbacks_.end()) {
+            callback->second(anEvent);
+        }
+        else {
+            std::cout << "Unknown event: " << anEvent.getId() << '\n';
+        }
     }
 };
 
