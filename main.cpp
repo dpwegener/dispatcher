@@ -26,7 +26,7 @@ struct Service {
 };
 template<typename T, typename S>
 void acceptEvent(S & service, Event const & event) {
-    service.accept(dynamic_cast<T const &>(event));
+    service.accept(static_cast<T const &>(event));
 }
 
 struct Dispatcher {
