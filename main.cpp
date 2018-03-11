@@ -8,13 +8,15 @@ struct Event {
 };
 
 struct Foo : Event {
-    int getId() const override { return 1; }
+    constexpr static int eventId() {return 1;}
+    int getId() const override { return eventId(); }
     std::string name() const { return "Bob"; };
 };
 
 struct Bar : Event {
-    int getId() const override { return 2; };
-    std::string address() const { return "43"; };
+    constexpr static int eventId() {return 2;}
+    int getId() const override { return eventId(); };
+    std::string address() const { return "42"; };
 };
 
 using EventCall = std::function<void(Event const &)> ;
@@ -24,13 +26,32 @@ EventCall eventCallback(S & service) {
     return [service] (Event const & event) mutable {service.accept(static_cast<E const &>(event));};
 }
 
+
 struct Service {
+template<typename E>
+    EventCall callback() {
+        return [this] (Event const & event) mutable {accept(static_cast<E const &>(event));};
+    }
+
     void accept(Foo const & aFoo) {
         std::cout << "You gave me a Foo called " << aFoo.name() << '\n';
     }
 
     void accept(Bar const & aBar) {
         std::cout << "You gave me a Bar from " << aBar.address() << '\n';
+    }
+
+    void acceptFoo(Foo const & aFoo) {
+        std::cout << "AcceptFoo got a Foo called " << aFoo.name() << '\n';
+    }
+
+    void callbacks(std::unordered_map<int, EventCall> & callbacks) {
+        callbacks[Foo::eventId()] = [this] (Event const & event) mutable {acceptFoo(static_cast<Foo const &>(event));};
+        callbacks[Bar::eventId()] = callback<Bar>();
+    }
+
+    EventCall fooCallback() {
+        return [this] (Event const & event) mutable {acceptFoo(static_cast<Foo const &>(event));};
     }
 };
 
@@ -58,11 +79,11 @@ int main(int, char**) {
     theService.accept(foo);
     theService.accept(bar);
     std::unordered_map<int, EventCall> callbacks;
-    callbacks[1] = eventCallback<Foo>(theService);
-    callbacks[2] = eventCallback<Bar>(theService);
-    callbacks[1](foo);
-    callbacks[2](bar);
+    theService.callbacks(callbacks);
+    callbacks[Foo::eventId()](foo);
+    callbacks[Bar::eventId()](bar);
     eventCallback<Foo>(theService)(foo);
+    theService.fooCallback()(foo);
     Dispatcher dispatcher(callbacks);
     dispatcher.accept(bar);
     dispatcher.accept(foo);
